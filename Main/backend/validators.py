@@ -17,7 +17,7 @@ def isValidNickname(nickname: str):
 
 
 def isValidAbilityName(name: str):
-    if 15 >= len(name) >= 2 and all([x in VALID_ABILITY_SYMBOLS for x in name]):
+    if 30 >= len(name) >= 1 and all([x in VALID_ABILITY_SYMBOLS for x in name]):
         return True
     return False
 
@@ -33,17 +33,18 @@ def isValidAbilityPrice(price: str):
 
 
 def isValidCardNumber(card_number: str):
-    return 7 < len(card_number) < 30 and all(x in "0123456789 " for x in card_number)
+    return 7 < len(card_number) < 30 and all(x in "0123456789 -" for x in card_number)
 
 
 def formatCardName(card_number: str):
-    cn = card_number.replace(' ', '')
-    if len(card_number) == 16:
+    cn = card_number.replace(' ', '').replace('-', '')
+    if len(cn) == 16:
         return f'{cn[0:4]} {cn[4:8]} {cn[8:12]} {cn[12:16]}'
-    if len(card_number) > 16:
+    elif len(cn) > 16:
         return f'{cn[0:8]} {cn[8:999]}'
+    else:
+        return cn
 
 
-def isValidWDAmount(amount: str, max_wd: int = 10000):
-    return all(x in "0123456789 ." for x in amount) and amount.count('.') <= 1 and \
-           10 < float(amount) < max_wd
+def isValidWDAmount(amount: str):
+    return amount.replace('.', '', 1).isdigit() and float(amount) >= 10

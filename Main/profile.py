@@ -9,7 +9,7 @@ from Main.backend.validators import isValidAbilityName, isValidAbilityPrice
 from Middleware.database import UsersDB
 from Misc.filters import IsUser, IsPrivate
 from Src import nav
-from Src.states import Registration, Ability, Question
+from Src.states import Registration, Ability, Question, Payment
 from Src.config import NAV, MSG, CMDS
 from loader import dp, bot
 

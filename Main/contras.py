@@ -23,13 +23,19 @@ async def cbProfileByNicj(cb: CallbackQuery):
 
 
 @dp.callback_query_handler(lambda x: 'JUDGE_Q:ANSWER:' in x.data)
-async def cbProfileByNicj(cb: CallbackQuery):
+async def cbProfileByNick(cb: CallbackQuery):
     q_id = cb.data[15:]
-    await cb.message.answer(text=f"Введите ответ на вопрос <u>{q_id}</u>", reply_markup=nav.cancel_q_menu)
+    await cb.answer()
+    await cb.message.edit_reply_markup(reply_markup=None)
+
+    if QuestDB.questByID(q_id) is None or QuestDB.questByID(q_id)["status"] == "ANSWERED":
+        await cb.message.answer(text=MSG["INVALID_Q_ID"].format(q_id))
+        await cb.message.delete()
+        return
+    await cb.message.answer(text=MSG["ANSWER_MOTO"].format(q_id), reply_markup=nav.cancel_q_menu)
     await Question.Answer.set()
     await dp.get_current().current_state().update_data(q_id=q_id)
-    await cb.answer()
-    await cb.message.delete()
+    #await cb.message.delete()
 
 
 @dp.callback_query_handler(lambda x: 'CONTRA_PROFILE:' in x.data)
@@ -58,17 +64,19 @@ async def stateAnswerContras(message: Message, state: FSMContext):
     total_fee = GLOBAL_FEE if custom_fee == -1 else custom_fee
     await message.answer(MSG["QUESTION_ANSWERED"].format(total_fee),
                          reply_markup=nav.startMenu(message.from_user.id))
+
+    # Update question in db
+    QuestDB.update_questions(q_id, dict(q_answer=message.as_json(),
+                                        status="ANSWERED"))
+
+    # Remained questions
     contra_quests = QuestDB.activeContraQuests(message.from_user.id)
     remained = MSG["QUESTIONS_DONE"] if len(contra_quests) == 0 else \
         MSG["QUESTIONS_PROCESS"].format(len(contra_quests))
     await message.answer(text=remained, reply_markup=nav.startMenu(message.from_user.id))
 
-    # Update question in db
-    QuestDB.update_questions(q_id, dict(q_answer=message.as_json(),
-                                        status="ANSWERED"))
-    q_db = QuestDB.questByID(q_id)
-
     # Increase deposit
+    q_db = QuestDB.questByID(q_id)
     c_deposit = UsersDB.get(q_db["r_id"], "deposit")
     UsersDB.update(q_db["r_id"], "deposit", c_deposit + q_db["amount"] * (1 - total_fee / 100))
 

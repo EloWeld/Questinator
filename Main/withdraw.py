@@ -16,6 +16,14 @@ from loader import dp
 
 
 # ==================== CALLBACKS ================== #
+@dp.callback_query_handler(lambda x: "EDIT_CARD" in x.data)
+async def cbEditCard(cb: CallbackQuery):
+    await cb.answer()
+    await cb.message.answer(text=MSG["NEW_CARD_MOTO"], reply_markup=ReplyKeyboardRemove())
+    await Payment.NewCard.set()
+    await dp.get_current().current_state().update_data(require_withdraw=False)
+
+
 @dp.callback_query_handler(lambda x: "WITHDRAW" in x.data)
 async def cbEditProfile(cb: CallbackQuery):
     await cb.message.answer(text=MSG["WITHDRAW_MOTO"])
@@ -30,9 +38,10 @@ async def cbEditProfile(cb: CallbackQuery):
     elif not withdraw_data:
         await cb.message.answer(text=MSG["NEW_CARD_MOTO"], reply_markup=ReplyKeyboardRemove())
         await Payment.NewCard.set()
+        await dp.get_current().current_state().update_data(require_withdraw=True)
     else:
         await cb.message.answer(text=MSG["BANK_INFO"].format(**withdraw_data), disable_web_page_preview=True)
-        await cb.message.answer(text=MSG["WITHDRAW_ENTER_AMOUNT"])
+        await cb.message.answer(text=MSG["WITHDRAW_ENTER_AMOUNT"], reply_markup=ReplyKeyboardRemove())
         await Payment.Widthdraw.set()
 
 
@@ -41,8 +50,12 @@ async def cbEditProfile(cb: CallbackQuery):
 async def stateNewCard(message: Message, state: FSMContext):
     amount = message.text
     u_deposit = UsersDB.get(message.from_user.id, "deposit")
-    if not isValidWDAmount(amount, u_deposit):
+    if not isValidWDAmount(amount):
         await message.answer(text='Некорректная сумма перевода! Ввывод отменён',
+                             reply_markup=nav.startMenu(message.from_user.id))
+        await state.finish()
+    elif float(amount) > float(u_deposit):
+        await message.answer(text='Недостаточно средств! Ввывод отменён',
                              reply_markup=nav.startMenu(message.from_user.id))
         await state.finish()
     else:
@@ -56,16 +69,23 @@ async def stateNewCard(message: Message, state: FSMContext):
 
 
 @dp.message_handler(IsUser(), state=Payment.NewCard)
-async def stateNewCard(message: Message):
-    card_number = message.text
+async def stateNewCard(message: Message, state: FSMContext):
+    card_number = str(message.text).replace(' ', '').replace('-', '')
     if not isValidCardNumber(card_number):
-        await message.answer(text=MSG["INVALID_CARD"])
-        await Payment.NewCard.set()
+        await message.answer(text=MSG["INVALID_CARD"],
+                             reply_markup=nav.startMenu(message.from_user.id))
+        await state.finish()
     else:
         info = getCardInfo(formatCardName(card_number))
         UsersDB.update(message.from_user.id, "withdraw_data", json.dumps(info))
 
         await message.answer(text=MSG["CARD_ADDED"])
-        await message.answer(text=MSG["BANK_INFO"].format(**info), disable_web_page_preview=True)
-        await message.answer(text=MSG["WITHDRAW_ENTER_AMOUNT"])
-        await Payment.Widthdraw.set()
+        await message.answer(text=MSG["BANK_INFO"].format(**info),
+                             disable_web_page_preview=True,
+                             reply_markup=nav.startMenu(message.from_user.id))
+
+        if (await state.get_data())["require_withdraw"]:
+            await message.answer(text=MSG["WITHDRAW_ENTER_AMOUNT"])
+            await Payment.Widthdraw.set()
+        else:
+            await state.finish()

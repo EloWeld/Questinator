@@ -140,7 +140,7 @@ async def sendQuestionToContracor(user: User, state: FSMContext):
                           data["question"],
                           data["ability"]["price"])
     await bot.send_message(chat_id=user.id,
-                           text='❤ Спасибо за оплату ❤',
+                           text='❤ Спасибо за оплату ❤ Вопрос отослан исполнителю, ждите ответа!',
                            reply_markup=nav.startMenu(user.id))
 
     # Notify contracter

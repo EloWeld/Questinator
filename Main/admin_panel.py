@@ -159,7 +159,7 @@ async def txtAdminWDRequests(message: Message):
             '@' + u_data["username"],
             reqest["amount"],
             u_data["withdraw_data"]["card"]
-        ), reply_markup=nav.judge_wd(reqest["sender_id"], reqest["transaction"]))
+        ), reply_markup=nav.judge_wd(reqest["sender_id"], reqest["trans_id"]))
 
 
 @dp.message_handler(IsAdmin(), Text(NAV["AP_REG_REQUESTS"]))
@@ -251,8 +251,12 @@ async def judgeContra(cb: CallbackQuery):
         await bot.send_message(chat_id=user_id, text=MSG["YOUR_WD_CONFIRMED"])
 
         await cb.message.delete()
-    elif action == "IGNORE":
-        await cb.message.delete()
+    elif action == "REJECT":
+        WithdrawsDB.update_withdraw(trans, "status", "REJECTED")
+        await cb.message.edit_reply_markup(reply_markup=None)
+        await cb.message.edit_text(text=f"🚫 Заявка <u>#{trans}</u> отклонена")
+        await bot.send_message(chat_id=user_id,
+                               text=f"🚫 Ваша заявка на вывод <u>#{trans}</u> отклонена!")
 
 
 def qiwiAutoPay(card: str, amount: float):

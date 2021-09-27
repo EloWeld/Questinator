@@ -186,7 +186,7 @@ def getCardInfo(cardnum: str):
         "cardNumber": cardnum.replace(' ', '')[:6]
     }
     response = requests.get(url=binking_url, params=p)
-    if response.status_code != 200:
+    if response.status_code != 200 or response.json() is None or "bankName" not in response.json():
         print(cardnum, "Не удалось определить карту!")
     else:
         r_data = response.json()
@@ -204,11 +204,11 @@ async def sendMedia(chat_id: int, data: dict, reply=None):
         await bot.send_photo(chat_id=a, photo=q["photo"][0]["file_id"],
                              caption=q["caption"] if "caption" in q else '',
                              reply_markup=reply)
-    if "video_note" in q:
+    elif "video_note" in q:
         await bot.send_video_note(chat_id=a, video_note=q["video_note"]["file_id"],
                                   duration=q["video_note"]["duration"], thumb=q["video_note"]["thumb"]["file_id"],
                                   reply_markup=reply)
-    if "animation" in q:
+    elif "animation" in q:
         await bot.send_animation(chat_id=a, animation=q["animation"]["file_id"],
                                  width=q["animation"]["width"], height=q["animation"]["height"],
                                  thumb=q["animation"]["thumb"]["file_id"], duration=q["animation"]["duration"],
@@ -226,19 +226,19 @@ async def sendMedia(chat_id: int, data: dict, reply=None):
                                 thumb=q["document"]["thumb"]["file_id"],
                                 caption=q["caption"] if "caption" in q else '',
                                 reply_markup=reply)
-    if "voice" in q:
+    elif "voice" in q:
         await bot.send_voice(chat_id=a, voice=q["voice"]["file_id"], duration=q["voice"]["duration"],
                              caption=q["caption"] if "caption" in q else '',
                              reply_markup=reply)
-    if "video" in q:
+    elif "video" in q:
         await bot.send_video(chat_id=a, video=q["video"]["file_id"],
                              width=q["video"]["width"], height=q["video"]["height"],
                              thumb=q["video"]["thumb"]["file_id"], duration=q["video"]["duration"],
                              caption=q["caption"] if "caption" in q else '',
                              reply_markup=reply)
-    if "sticker" in q:
+    elif "sticker" in q:
         await bot.send_sticker(chat_id=a, sticker=q["sticker"]["file_id"],
                                reply_markup=reply)
-    if "text" in q:
+    elif "text" in q:
         await bot.send_message(chat_id=a, text=q["caption"],
                                reply_markup=reply)

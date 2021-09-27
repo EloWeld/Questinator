@@ -51,7 +51,14 @@ async def stateAbilityDescDelete(msg: Message, state: FSMContext):
 
 
 # ==================== QUESTION CAPTION ================== #
-@dp.message_handler(IsPrivate(), Text(NAV["QA_ADD_CAPTION"]), state=Question.ConfirmText)
+@dp.message_handler(IsPrivate(), Text(NAV["QA_NO_CAPTION"]), state=Question.ConfirmText)
+async def stateConfirmTextNoCap(message: Message):
+    await message.answer(text=MSG["ASK_QUESTION_PREVIEW_NO_CAP"],
+                         reply_markup=nav.confirm_menu)
+    await Question.Confirm.set()
+
+
+@dp.message_handler(IsPrivate(), state=Question.ConfirmText)
 async def stateConfirmTextCap(message: Message, state: FSMContext):
     if message.text:
         q_update = (await state.get_data())["question"]
@@ -63,13 +70,6 @@ async def stateConfirmTextCap(message: Message, state: FSMContext):
         await Question.Confirm.set()
     else:
         await stateConfirmTextNoCap(message)
-
-
-@dp.message_handler(IsPrivate(), Text(NAV["QA_NO_CAPTION"]), state=Question.ConfirmText)
-async def stateConfirmTextNoCap(message: Message):
-    await message.answer(text=MSG["ASK_QUESTION_PREVIEW_NO_CAP"],
-                         reply_markup=nav.confirm_menu)
-    await Question.Confirm.set()
 
 
 @dp.message_handler(IsPrivate(), Text(NAV["QA_CHANGE"]), state=Question.Confirm)

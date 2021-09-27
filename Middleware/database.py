@@ -204,7 +204,8 @@ class QuestDatabase(Database):
         return [x for x in self.all_questions() if int(x["r_id"]) == contra_id]
 
     def activeContraQuests(self, contra_id: int):
-        return [x for x in self.questsByContraID(contra_id) if x["status"] == "NOT_ANSWERED"]
+        d = [x for x in self.questsByContraID(contra_id) if x["status"] == "NOT_ANSWERED"]
+        return d
 
     def questByID(self, question_id: int):
         qsts = [x for x in self.all_questions() if int(x["q_id"]) == int(question_id)]

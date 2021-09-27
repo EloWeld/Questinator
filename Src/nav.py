@@ -82,7 +82,6 @@ admin_panel = Menu(resize_keyboard=True, keyboard=[
 
 question_add_caption = Menu(resize_keyboard=True, one_time_keyboard=True, keyboard=[
     [
-        Btn(NAV["QA_ADD_CAPTION"]),
         Btn(NAV["QA_NO_CAPTION"]),
     ],
 ])
@@ -114,13 +113,16 @@ def startMenu(user_id: int):
 # region =================== INLINE MENUs ================================
 my_profile_menu = IlMenu(row_width=3, inline_keyboard=[
     [
+        IlBtn(NAV["MY_ABILITIES"], callback_data='MY_ABILITIES'),
+    ],
+    [
         IlBtn(NAV["EDIT_PROFILE"], callback_data='EDIT_PROFILE'),
     ],
     [
         IlBtn(NAV["WITHDRAW"], callback_data='WITHDRAW'),
     ],
     [
-        IlBtn(NAV["MY_ABILITIES"], callback_data='MY_ABILITIES'),
+        IlBtn(NAV["EDIT_CARD"], callback_data='EDIT_CARD'),
     ],
 ])
 
@@ -169,10 +171,10 @@ def judge_contra(user_id):
     return reply
 
 
-def judge_q(ability_id):
+def judge_q(q_id):
     reply = IlMenu(row_width=3, one_time_keyboard=True, inline_keyboard=[
         [
-            IlBtn(NAV["Q_ANSWER"], callback_data=f'JUDGE_Q:ANSWER:{ability_id}'),
+            IlBtn(NAV["Q_ANSWER"], callback_data=f'JUDGE_Q:ANSWER:{q_id}'),
         ],
     ])
     return reply
@@ -183,7 +185,7 @@ def judge_wd(user_id, trans):
         [
             IlBtn(NAV["WD_WIDTHDRAW"], callback_data=f'JUDGE_WD:WITHDRAW:{user_id}:{trans}'),
             IlBtn("🥝 Автоперевод", callback_data=f'JUDGE_WD:QIWIPAY:{user_id}:{trans}'),
-            IlBtn(NAV["WD_IGNORE"], callback_data=f'JUDGE_Q:IGNORE:{user_id}:{trans}'),
+            IlBtn(NAV["WD_REJECT"], callback_data=f'JUDGE_WD:REJECT:{user_id}:{trans}'),
         ],
     ])
     return reply
